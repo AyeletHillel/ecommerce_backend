@@ -16,6 +16,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const AuthController = require("./controllers/auth.js")
 
 
 ///////////////////////////////
@@ -54,7 +55,6 @@ const UserSchema = new mongoose.Schema({
 }, {timestamps: true})
 
 const User = mongoose.model("User", UserSchema)
-module.exports = User
 
 ///////////////////////////////
 // MiddleWare
@@ -63,6 +63,7 @@ app.use(cors()); // to prevent cors errors, open access to all origins
 app.use(morgan("dev")); // logging
 app.use(express.json()); // parse json bodies
 app.use(cookieParser()) // parse cookies
+app.use("/auth", AuthController) //auth
 
 ///////////////////////////////
 // ROUTES
@@ -130,3 +131,5 @@ app.get("/products/:id", async (req, res) => {
 // LISTENER
 ////////////////////////////////
 app.listen(PORT, () => console.log(`listening on PORT ${PORT}`));
+
+module.exports = User
