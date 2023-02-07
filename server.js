@@ -15,6 +15,8 @@ const mongoose = require("mongoose");
 // import middlware
 const cors = require("cors");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
+
 
 ///////////////////////////////
 // DATABASE CONNECTION
@@ -26,21 +28,33 @@ mongoose.connect(DATABASE_URL, {
 });
 // Connection Events
 mongoose.connection
-  .on("open", () => console.log("Your are connected to mongoose"))
-  .on("close", () => console.log("Your are disconnected from mongoose"))
-  .on("error", (error) => console.log(error));
+.on("open", () => console.log("Your are connected to mongoose"))
+.on("close", () => console.log("Your are disconnected from mongoose"))
+.on("error", (error) => console.log(error));
 
 ///////////////////////////////
 // MODELS
 ////////////////////////////////
+
+// Products
 const ProductsSchema = new mongoose.Schema({
   name: String,
   image: String,
   desc: String,
   price: Number
-});
+}, {timestamps: true});
 
 const Products = mongoose.model("Products", ProductsSchema);
+
+// User
+const UserSchema = new mongoose.Schema({
+  username: {type: String, require: true, unique: true},
+  password: {type: String, require: true}
+  
+}, {timestamps: true})
+
+const User = mongoose.model("User", UserSchema)
+module.exports = User
 
 ///////////////////////////////
 // MiddleWare
@@ -48,6 +62,7 @@ const Products = mongoose.model("Products", ProductsSchema);
 app.use(cors()); // to prevent cors errors, open access to all origins
 app.use(morgan("dev")); // logging
 app.use(express.json()); // parse json bodies
+app.use(cookieParser()) // parse cookies
 
 ///////////////////////////////
 // ROUTES
