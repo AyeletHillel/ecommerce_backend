@@ -1,61 +1,65 @@
-const router = require("express").Router();
-require("dotenv").config()
+////////////////////////////////////////
+// Import Dependencies
+////////////////////////////////////////
+const express = require("express")
 const bcrypt = require("bcryptjs")
-const jwt = require("jsonwebtoken")
+const User = require("../models/user.js")
 
-const User = require("../server.js")
+/////////////////////////////////////////
+// Create Route
+/////////////////////////////////////////
+const router = express.Router()
+
+///////////////////////////////
+// ROUTES
+////////////////////////////////
+// // create a test route
+// router.get("/", (req, res) => {
+//     res.send("hello world");
+//   });
 
 // signup post
 router.post("/signup", async (req, res) => {
     try {
-    // hash password
-    req.bogy.password = await bcrypt.hash(req.body.password, await bcrypt.genSalt(10))
-    
-    // generate the user
-    const user = await User.create(req.body)
-
-    // response
-    res.json({status: "User created"}) 
-
-} catch (error) {
-        //send error
+        // encrypt password
+        req.body.password = await bcrypt.hash(req.body.password, await bcrypt.genSalt(10))
+        // create the new user
+        res.json(await User.create(req.body));
+    } catch (error) {
         res.status(400).json(error);
-      }
-})
-
-// login post
-router.post("/login", async (req, res) => {
-    try {
-    const {username, password} = req.body
-    // get the user
-    const user = await User.find({username})
-
-    if (user) {
-        const passwordCheck = await bcrypt.compare(password, user.password)
-        if (passwordCheck) {
-            const payload = { username }
-            const token = await jwt.sign(payload, process.env.SECRET)
-            res.cookie("token", token, { httpOnly: true }).json(payload);
-
-        } else {
-        res.status(400).json({error: "Passwords do not match"})
     }
+})
 
-    } else {
-        res.status(400).json({error: "User does not exist"})
-
-    }} catch (error) {
-        //send error
-        res.status(400).json(error);
+router.post("/login", (req, res) => {
+    // get the data from the request body
+    const { username, password } = req.body;
+    User.findOne({ username }, (err, user) => {
+      // checking if userexists
+      if (!user) {
+        res.send("user doesn't exist");
+      } else {
+        //check if password matches
+        const result = bcrypt.compareSync(password, user.password);
+        if (result) {
+          req.session.username = username
+          req.session.loggedIn = true
+          res.send("Logged In");
+        } else {
+          res.send("wrong password");
+        }
       }
+    });
+  });
 
+  router.get("/logout", (req, res) => {
+    // destroy session and redirect to main page
+    req.session.destroy((err) => {
+        res.send("Logged Out")
+    })
 })
 
-// logout post
-router.post("/signup", async (req, res) => {
-    res.clearCookie("token").json({ response: "You are logged out"})
 
-})
-
-// Export Router
-module.exports = router;
+//////////////////////////////////////////
+// Export the Router
+//////////////////////////////////////////
+module.exports = router
