@@ -42,9 +42,10 @@ app.use(express.json()); // parse json bodies
 app.use(cookieParser()) // parse cookies
 app.use(session({
   secret: process.env.SECRET,
-  store: MongoStore.create({mongoUrl: process.env.DATABASE_URL}),
-  saveUninitialized: true,
+  store: MongoStore.create({mongoUrl: process.env.DATABASE_URL, collection: "sessions"}),
+  saveUninitialized: false,
   resave: false,
+  cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 24 hours
 }))
 app.use("/auth", AuthRouter) //auth
 app.use("/products", ProductRouter) 
